@@ -1,6 +1,7 @@
 // Course class
 class Course {
     constructor(title, instructor, image){
+        this.courseId = Math.floor(Math.random()*10000);
         this.title = title;
         this.instructor = instructor;
         this.image = image;
@@ -16,7 +17,7 @@ class UI {
             <td><img src="img/${course.image}"/></td>
             <td>${course.title}</td>
             <td>${course.instructor}</td>
-            <td><a href="#" class="btn btn-danger btn-sm delete">Delete</a></td>
+            <td><a href="#" data-id="${course.courseId}" class="btn btn-danger btn-sm delete">Delete</a></td>
          </tr>    
     `;
 
@@ -32,6 +33,7 @@ class UI {
     deleteCourse(element){
         if(element.classList.contains('delete')){
             element.parentElement.parentElement.remove();
+            return true;
         }
     }
 
@@ -80,8 +82,20 @@ class Storage {
         localStorage.setItem('courses',JSON.stringify(courses));
     }
 
-    static deleteCourse(){
+    static deleteCourse(element){
+        if(element.classList.contains('delete')){
+            const id = element.getAttribute('data-id');
+        
+            const courses = Storage.getCourses();
 
+            courses.forEach((course,index)=>{
+                if(course.courseId == id){
+                    courses.splice(index,1);
+                }
+            });
+
+            localStorage.setItem('courses',JSON.stringify(courses));
+        }
     }
 
 }
@@ -97,6 +111,8 @@ document.getElementById('new-course').addEventListener('submit',function(e){
 
     // create course object
     const course = new Course(title,instructor,image);
+
+    
 
     // create UI
     const ui = new UI();   
@@ -123,10 +139,10 @@ document.getElementById('course-list').addEventListener('click',function(e){
     const ui = new UI();
     
     // delete course
-    ui.deleteCourse(e.target);
+    if(ui.deleteCourse(e.target)==true){
+        // delete from LS
+        Storage.deleteCourse(e.target);
 
-    // delete from LS
-    Storage.deleteCourse();
-
-    ui.showAlert('the course has been deleted','danger');
+        ui.showAlert('the course has been deleted','danger');
+    }
 });
